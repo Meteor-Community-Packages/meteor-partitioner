@@ -1,0 +1,11 @@
+{
+    "name": "partitioner",
+    "description": "Transparently divide a single meteor app into several different instances",
+    "homepage": "https://github.com/mizzao/meteor-partitioner",
+    "author": "Andrew Mao  (http://www.andrewmao.net)",
+    "version": "0.1.0",
+    "git": "https://github.com/mizzao/meteor-partitioner.git",
+    "packages": {
+        "collection-hooks": {}
+    }
+}

@@ -15,8 +15,10 @@ This package allows you to structure your code without thinking about how to sep
 
 ## Installation
 
+Install with Meteorite:
+
 ```
-mrt install partitioner
+mrt add partitioner
 ```
 
 ## Usage
@@ -41,7 +43,7 @@ Collections that have been partitioned will behave as if there is a separate ins
 - `update` and `remove` operations will only affect documents for the current group.
 - Attempting any operations on a partitioned collection for which a user has not been assigned to a group will result in an error.
 
-This is accomplished using selector rewriting based on the current `userId` both on the client and in server methods, and Meteor's environment variables. For more operations see the source.
+This is accomplished using selector rewriting based on the current `userId` both on the client and in server methods, and Meteor's environment variables. For more details see the source.
 
 ## Server API
 
@@ -79,7 +81,7 @@ On the server and client, gets the group of the current user. Returns `undefined
 
 Suppose you have a publication on the server such as the following:
 
-```
+```js
 Meteor.publish("fooPub", function(bar) {
   selector = doSomethingWith(bar);
   return Foo.find(bar);
@@ -88,7 +90,7 @@ Meteor.publish("fooPub", function(bar) {
 
 On the client, you would subscribe to this with
 
-```
+```js
 Meteor.subscribe("fooPub", bar);
 ```
 
@@ -96,7 +98,7 @@ Normally, all users would get the same view of the data as long as `bar` is the 
 
 Note that due to a current limitation of Meteor (see below), this subscription will not update if the user's group changes on the server. Hence, you will need to update subscriptions to partitioned collections in a reactive computation:
 
-```
+```js
 Deps.autorun(function() {
   var group = Partitioner.group();
   Meteor.subscribe("fooPub", bar, group);
@@ -116,6 +118,75 @@ Partitioner treats users with `admin: true` as special. These users are able to 
 However, when admin users join a group, they will only see the data and users in that group (if you set up the subscriptions as noted above.) They will also, currently, be unable to do **any** operations on partitioned collections. The idea is to allow admin users to be able to join games, chatrooms, etc for observational purposes, but to prevent them from making unintended edits from the user interface.
 
 If you would like to see other ways to define admin permissions, please open an issue.
+
+## Examples
+
+### Before
+
+Suppose you have a chat application with a `ChatMessages` collection, which is scoped by a field `room`. In vanilla Meteor, your publication might be written as follows:
+
+```js
+Meteor.publish("messages", function(roomId) {
+  return ChatMessages.find({room: roomId});
+});
+```
+
+Then, on the client, you might reactively subscribe to the chat room:
+
+```js
+Deps.autorun(function() {
+  var roomId = Session.get("room");
+  Meteor.subscribe("messages", roomId);
+});
+```
+
+To send a message, a client or server method might do something like
+
+```js
+ChatMessages.insert({text: "hello world", room: currentRoom, timestamp: Date.now()});
+```
+
+This looks simple enough, until you realize that you need to keep track of the `room` for each message that is entered in to the collection. Why not have some code do it for you automagically?
+
+### After
+
+With this package, you can create a partition of the `ChatMessages` collection:
+
+```js
+ChatMessages = new Meteor.Collection("messages");
+Partitioner.PartitionCollection(ChatMessages, {index: {timestamp: 1}});
+```
+
+The second argument tells the partitioner that you want an index of `timestamp` within each group. Partitioned lookups using `timestamp` will be done efficiently. Then, you can just write your publication as follows:
+
+```js
+Meteor.publish("messages", function() {
+  return ChatMessages.find();
+});
+```
+
+The client's subscription would simply be the following:
+
+```js
+Deps.autorun(function() {
+  var group = Partitioner.group();
+  Meteor.subscribe("messages", group);
+});
+```
+
+Now, sending a chat message is as easy as this:
+
+```js
+ChatMessages.insert({text: "hello world", timestamp: Date.now()});
+```
+
+To change chat rooms, simply have server code call `Partitioner.setUserGroup` for a particular user.
+
+Note that the above code looks very similar to a Meteor app where there is only one chatroom, apart from the reactive subscription. This means you can think and reason about your data within each partition without worrying about accidentally touching things that you don't want. Chats, games, and other highly concurrent datasets can be designed for a single group of users, and quickly converted to multiple groups using this package.
+
+### Other Examples
+
+See [CrowdMapper](https://github.com/mizzao/CrowdMapper) for a highly concurrent mapping application that partitions several collections over groups of users.
 
 ## Limitations
 

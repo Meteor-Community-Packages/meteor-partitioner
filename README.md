@@ -196,7 +196,7 @@ See [CrowdMapper](https://github.com/mizzao/CrowdMapper) for a highly concurrent
 
 - Multiple partitions at once is not supported, i.e. `Foo` is partitioned one way and `Bar` is partitioned another way. There is only one set of groups over all users.
 
-- Changing the group relies on a small amount of client-side code. It would be great if the publication would do a reactive join with something like [publish-with-relations](https://github.com/svasva/meteor-publish-with-relations), so that everything is controlled by the server, but this currently results in some prohibitively expensive observe operations to accomplish the same thing as a simple re-subscription. Hence, we've opted to use the latter for now.
+- Changing the group relies on a small amount of client-side code. It would be great if the publication would do a reactive join with something like [publish-with-relations](https://github.com/svasva/meteor-publish-with-relations), so that a single publication is controlled by the server and updated as the group changes. However, this would result in some potentially expensive observe operations, and can't be accomplished with transparent hooks - just to accomplish the same thing as a simple re-subscription. Hence, we've opted to use the latter for now.
 
 ## Notes
 

@@ -29,7 +29,7 @@ Partitioner operates at the collection level. On the server and client, call `Pa
 
 ```
 Foo = new Meteor.Collection("foo");
-Partitioner.PartitionCollection(Foo, options);
+Partitioner.partitionCollection(Foo, options);
 ```
 
 `options` determines how the partitioned collection will behave. The fields that are supported are
@@ -44,6 +44,18 @@ Collections that have been partitioned will behave as if there is a separate ins
 - Attempting any operations on a partitioned collection for which a user has not been assigned to a group will result in an error.
 
 This is accomplished using selector rewriting based on the current `userId` both on the client and in server methods, and Meteor's environment variables. For more details see the source.
+
+## Common (Client/Server) API
+
+#### `Partitioner.partitionCollection(Meteor.Collection, options)`
+
+Adds hooks to a particular collection so that it supports partition operations. This should be declared immediately after `new Meteor.Collection` on both the server and the client.
+
+**NOTE**: Any documents in the collection that were not created from a group will not be visible to any groups in the partition. You should think of creating a partitioned collection as an atomic operation consisting of declaring the collection and calling `partitionCollection`; we will consider rolling this into a single API call in the future.
+
+#### `Partitioner.group()`
+
+On the server and client, gets the group of the current user. Returns `undefined` if the user is not logged in or not part of a group. A reactive variable.
 
 ## Server API
 
@@ -70,12 +82,6 @@ A convenience function for running `Partitioner.bindGroup` as the group of a par
 #### `Partitioner.directOperation(func)`
 
 Sometimes we need to do operations over the entire underlying collection, including all groups. This provides a way to do that, and will not throw an error if the current user method invocation context is not part of a group.
-
-## Common API
-
-#### `Partitioner.group()`
-
-On the server and client, gets the group of the current user. Returns `undefined` if the user is not logged in or not part of a group. A reactive variable.
 
 ## Configuring Subscriptions
 

@@ -84,10 +84,23 @@ if Meteor.isServer
     printMyCollection: (name) ->
       console.log groupingCollections[name].find().fetch()
 
+  Tinytest.add "partitioner - grouping - undefined default group", (test) ->
+    test.equal Partitioner.group(), undefined
+
+  # The overriding is done separately for hooks
+  Tinytest.add "partitioner - grouping - override group environment variable", (test) ->
+    Partitioner.bindGroup "overridden", ->
+      test.equal Partitioner.group(), "overridden"
+
   Tinytest.add "partitioner - collections - disallow arbitrary insert", (test) ->
     test.throws ->
-      basicInsertCollection.insert {foo: "bar" }
+      basicInsertCollection.insert {foo: "bar"}
     , (e) -> e.error is 403 and e.reason is ErrMsg.userIdErr
+
+  Tinytest.add "partitioner - collections - insert with overridden group", (test) ->
+    Partitioner.bindGroup "overridden", ->
+      basicInsertCollection.insert { foo: "bar"}
+      test.ok()
 
 if Meteor.isClient
   ###

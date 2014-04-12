@@ -34,7 +34,11 @@ Partitioner.clearUserGroup = (userId) ->
   Grouping.remove(userId)
 
 Partitioner.group = ->
-  userId = Meteor.userId()
+  # If group is overridden, return that instead
+  if (groupId = Partitioner._currentGroup.get())?
+    return groupId
+  try # We may be outside of a method
+    userId = Meteor.userId()
   return unless userId
   return Partitioner.getUserGroup(userId)
 

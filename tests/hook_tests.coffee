@@ -100,7 +100,11 @@ if Meteor.isServer
 
     TestFuncs.findHook.call(ctx, userId, ctx.args[0], ctx.args[1])
     # Should replace undefined with { _groupId: ... }
+    test.isTrue ctx.args[0]?
     test.equal ctx.args[0]._groupId, testGroupId
+
+    test.isTrue ctx.args[1]?
+    test.equal ctx.args[1].fields._groupId, 0
 
   Tinytest.add "partitioner - hooks - find with string id", (test) ->
     ctx =
@@ -110,14 +114,18 @@ if Meteor.isServer
     # Should not touch a string
     test.equal ctx.args[0], "yabbadabbadoo"
 
+    test.isFalse ctx.args[1]?
+
   Tinytest.add "partitioner - hooks - find with single _id", (test) ->
     ctx =
       args: [ {_id: "yabbadabbadoo"} ]
 
     TestFuncs.findHook.call(ctx, userId, ctx.args[0], ctx.args[1])
-    # Should not touch a single object
+    # Should not touch an object with _id
     test.equal ctx.args[0]._id, "yabbadabbadoo"
     test.isFalse ctx.args[0]._groupId
+
+    test.isFalse ctx.args[1]?
 
   Tinytest.add "partitioner - hooks - find with selector", (test) ->
     ctx =
@@ -127,6 +135,41 @@ if Meteor.isServer
     # Should not touch a string
     test.equal ctx.args[0].foo, "bar"
     test.equal ctx.args[0]._groupId, testGroupId
+
+    test.isTrue ctx.args[1]?
+    test.equal ctx.args[1].fields._groupId, 0
+
+  Tinytest.add "partitioner - hooks - find with inclusion fields", (test) ->
+    ctx =
+      args: [
+        { foo: "bar" },
+        { fields: { foo: 1 } }
+      ]
+
+    TestFuncs.findHook.call(ctx, userId, ctx.args[0], ctx.args[1])
+    # Should not touch a string
+    test.equal ctx.args[0].foo, "bar"
+    test.equal ctx.args[0]._groupId, testGroupId
+
+    test.isTrue ctx.args[1]?
+    test.equal ctx.args[1].fields.foo, 1
+    test.isFalse ctx.args[1].fields._groupId?
+
+  Tinytest.add "partitioner - hooks - find with exclusion fields", (test) ->
+    ctx =
+      args: [
+        { foo: "bar" },
+        { fields: { foo: 0 } }
+      ]
+
+    TestFuncs.findHook.call(ctx, userId, ctx.args[0], ctx.args[1])
+    # Should not touch a string
+    test.equal ctx.args[0].foo, "bar"
+    test.equal ctx.args[0]._groupId, testGroupId
+
+    test.isTrue ctx.args[1]?
+    test.equal ctx.args[1].fields.foo, 0
+    test.equal ctx.args[1].fields._groupId, 0
 
   Tinytest.add "partitioner - hooks - insert doc", (test) ->
     ctx =

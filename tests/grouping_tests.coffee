@@ -150,11 +150,15 @@ if Meteor.isClient
         test.equal res, id
   , (test, expect) ->
       test.equal basicInsertCollection.find({a: 1}).count(), 1
-      test.equal basicInsertCollection.findOne(a: 1)._groupId, myGroup
+      test.isFalse basicInsertCollection.findOne(a: 1)._groupId?
   ]
 
   testAsyncMulti "partitioner - collections - find from two groups", [ (test, expect) ->
     test.equal twoGroupCollection.find().count(), 1
+
+    twoGroupCollection.find().forEach (el) ->
+      test.isFalse el._groupId?
+
     Meteor.call "getCollection", "twoGroup", expect (err, res) ->
       test.isFalse err
       test.equal res.length, 2
@@ -165,6 +169,9 @@ if Meteor.isClient
       twoGroupCollection.insert {a: 2}, expect (err) ->
         test.isFalse err, JSON.stringify(err)
         test.equal twoGroupCollection.find().count(), 2
+
+        twoGroupCollection.find().forEach (el) ->
+          test.isFalse el._groupId?
       ###
         twoGroup now contains
         { _groupId: "myGroup", a: 1 }
@@ -175,6 +182,11 @@ if Meteor.isClient
       Meteor.call "getMyCollection", "twoGroup", expect (err, res) ->
         test.isFalse err
         test.equal res.length, 2
+
+        # Method finds should also not return _groupId
+        _.each res, (el) ->
+          test.isFalse el._groupId?
+
   , (test, expect) -> # Ensure that the other half is still on the server
       Meteor.call "getCollection", "twoGroup", expect (err, res) ->
         test.isFalse err, JSON.stringify(err)
@@ -196,6 +208,9 @@ if Meteor.isClient
       Meteor.call "getMyCollection", "twoGroup", {}, expect (err, res) ->
         test.isFalse err
         test.equal res.length, 3
+
+        _.each res, (el) ->
+          test.isFalse el._groupId?
   ]
 
   testAsyncMulti "partitioner - collections - server update identical keys across groups", [

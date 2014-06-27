@@ -38,8 +38,6 @@ findHook = (userId, selector, options) ->
     # Meteor._debug "Find hook called but " + ErrMsg.groupErr
     return true
 
-  # TODO delete the groupId on found records if/when it becomes necessary (transform?)
-
   # No need to add selectors if server side filtering works properly
   return true
 
@@ -52,7 +50,6 @@ insertHook = (userId, doc) ->
 
 # Add in groupId for client so as not to cause unexpected sync changes
 Partitioner.partitionCollection = (collection) ->
-  # TODO delete the groupId on found records if/when it becomes necessary (transform?)
   collection.before.find findHook
   collection.before.findOne findHook
 

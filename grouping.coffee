@@ -64,8 +64,9 @@ getPartitionedIndex = (index) ->
   return _.extend( defaultIndex, index )
 
 Partitioner.partitionCollection = (collection, options) ->
-  # Because of below, need to create an allow validator if there isn't one already
-  if collection._isInsecure
+  # Because of the deny below, need to create an allow validator
+  # on an insecure collection if there isn't one already
+  if collection._isInsecure()
     collection.allow
       insert: -> true
       update: -> true
@@ -88,8 +89,7 @@ Partitioner.partitionCollection = (collection, options) ->
     https://github.com/matb33/meteor-collection-hooks/issues/23
   ###
 
-  # Index the collections by groupId on the server for faster lookups...?
-  # TODO figure out how compound indices work on Mongo and if we should do something smarter
+  # Index the collections by groupId on the server for faster lookups across groups
   collection._ensureIndex getPartitionedIndex(options?.index)
 
 # Publish admin and group for users that have it
@@ -140,7 +140,8 @@ findHook = (userId, selector, options) ->
   return true if Partitioner._directOps.get() is true
 
   # for find(id) we should not touch this
-  # TODO may allow arbitrary finds
+  # TODO this may allow arbitrary finds across groups with the right _id
+  # We could amend this in the future to {_id: someId, _groupId: groupId}
   return true if _.isString(selector) or (selector? and "_id" of selector)
 
   # Check for global hook
@@ -151,10 +152,19 @@ findHook = (userId, selector, options) ->
     throw new Meteor.Error(403, ErrMsg.groupErr) unless groupId
 
   # if object (or empty) selector, just filter by group
-  unless @args[0]
+  unless selector?
     @args[0] = { _groupId : groupId }
   else
     selector._groupId = groupId
+
+  # Adjust options to not return _groupId
+  unless options?
+    @args[1] = { fields: {_groupId: 0} }
+  else
+    # If options already exist, add {_groupId: 0} unless fields has {foo: 1} somewhere
+    options.fields ?= {}
+    options.fields._groupId = 0 unless _.any(options.fields, (v) -> v is 1)
+
   return true
 
 insertHook = (userId, doc) ->
@@ -185,11 +195,4 @@ TestFuncs =
   findHook: findHook
   insertHook: insertHook
 
-# Backwards compatibility - can be removed later
-Meteor.startup ->
-  # Copy every user with a turkserver.group to just group and delete turkserver.group
-  Meteor.users.find("turkserver.group": $exists: true).forEach (user) ->
-    Meteor.users.update user._id,
-      $set: group: user.turkserver.group
-      $unset: "turkserver.group": null
 

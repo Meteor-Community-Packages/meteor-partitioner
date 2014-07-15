@@ -107,7 +107,8 @@ userFindHook = (userId, selector, options) ->
   return true if Helpers.isDirectUserSelector(selector)
 
   groupId = Partitioner._currentGroup.get()
-  # Do the usual find for no user/group or single selector
+  # This hook doesn't run if we're not in a method invocation or publish
+  # function, and Partitioner._currentGroup is not set
   return true if (!userId and !groupId)
 
   unless groupId

@@ -27,20 +27,6 @@ userFindHook = (userId, selector, options) ->
 Meteor.users.before.find userFindHook
 Meteor.users.before.findOne userFindHook
 
-findHook = (userId, selector, options) ->
-  # Allow these operations to proceed for the sake of reactivity
-  # but may be useful for diagnostic purposes
-  unless userId
-    # Meteor._debug "Find hook called but " + ErrMsg.userIdErr
-    return true
-  groupId = Partitioner.group()
-  unless groupId
-    # Meteor._debug "Find hook called but " + ErrMsg.groupErr
-    return true
-
-  # No need to add selectors if server side filtering works properly
-  return true
-
 insertHook = (userId, doc) ->
   throw new Meteor.Error(403, ErrMsg.userIdErr) unless userId
   groupId = Partitioner.group()
@@ -50,13 +36,10 @@ insertHook = (userId, doc) ->
 
 # Add in groupId for client so as not to cause unexpected sync changes
 Partitioner.partitionCollection = (collection) ->
-  collection.before.find findHook
-  collection.before.findOne findHook
+  # No find hooks needed if server side filtering works properly
 
-  # These will hook the _validated methods as well
   collection.before.insert insertHook
 
 TestFuncs =
   userFindHook: userFindHook
-  findHook: findHook
   insertHook: insertHook

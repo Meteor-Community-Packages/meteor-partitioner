@@ -15,10 +15,10 @@ This package allows you to structure your code without thinking about how to sep
 
 ## Installation
 
-Install with Meteorite:
+Install with Meteor:
 
 ```
-mrt add partitioner
+meteor add mizzao:partitioner
 ```
 
 ## Usage

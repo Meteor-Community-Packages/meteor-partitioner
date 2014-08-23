@@ -1,4 +1,5 @@
 Package.describe({
+  name: "mizzao:partitioner",
   summary: "Transparently divide a single meteor app into several different instances shared between different groups of users.",
   version: "0.5.2",
   git: "https://github.com/mizzao/meteor-partitioner.git"
@@ -15,7 +16,7 @@ Package.onUse(function (api) {
     'check'
   ]);
 
-  api.use("matb33:collection-hooks");
+  api.use("matb33:collection-hooks@0.7.3");
 
   api.add_files('common.coffee');
 

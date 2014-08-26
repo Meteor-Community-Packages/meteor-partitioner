@@ -1,4 +1,4 @@
-## vNEXT
+## v0.5.3
 
 * **Re-release for Meteor 0.9.**
 

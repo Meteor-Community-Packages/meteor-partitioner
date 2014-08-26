@@ -1,12 +1,12 @@
 Package.describe({
   name: "mizzao:partitioner",
-  summary: "Transparently divide a single meteor app into several different instances shared between different groups of users.",
-  version: "0.5.2",
+  summary: "Transparently divide a meteor app into different instances shared between groups of users.",
+  version: "0.5.3",
   git: "https://github.com/mizzao/meteor-partitioner.git"
 });
 
 Package.onUse(function (api) {
-  api.versionsFrom("METEOR-CORE@0.9.0-atm");
+  api.versionsFrom("METEOR@0.9.0");
 
   // Client & Server deps
   api.use([
@@ -18,10 +18,10 @@ Package.onUse(function (api) {
 
   api.use("matb33:collection-hooks@0.7.3");
 
-  api.add_files('common.coffee');
+  api.addFiles('common.coffee');
 
-  api.add_files('grouping.coffee', 'server');
-  api.add_files('grouping_client.coffee', 'client');
+  api.addFiles('grouping.coffee', 'server');
+  api.addFiles('grouping_client.coffee', 'client');
 
   api.export(['Partitioner', 'Grouping']);
   api.export('TestFuncs', {testOnly: true});
@@ -42,9 +42,9 @@ Package.onTest(function (api) {
     'test-helpers'
   ]);
 
-  api.add_files("tests/insecure_login.js");
+  api.addFiles("tests/insecure_login.js");
 
-  api.add_files('tests/hook_tests.coffee');
-  api.add_files('tests/grouping_index_tests.coffee', 'server');
-  api.add_files('tests/grouping_tests.coffee');
+  api.addFiles('tests/hook_tests.coffee');
+  api.addFiles('tests/grouping_index_tests.coffee', 'server');
+  api.addFiles('tests/grouping_tests.coffee');
 });

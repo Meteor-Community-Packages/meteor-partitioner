@@ -6,7 +6,7 @@
 ###
 
 Partitioner = {}
-Grouping = new Meteor.Collection("ts.grouping")
+Grouping = new Mongo.Collection("ts.grouping")
 
 # Meteor environment variables for scoping group operations
 Partitioner._currentGroup = new Meteor.EnvironmentVariable()

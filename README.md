@@ -28,7 +28,7 @@ Partitioner uses the [collection-hooks](https://github.com/matb33/meteor-collect
 Partitioner operates at the collection level. On the server and client, call `Partition.partitionCollection` immediately after declaring a collection:
 
 ```
-Foo = new Meteor.Collection("foo");
+Foo = new Mongo.Collection("foo");
 Partitioner.partitionCollection(Foo, options);
 ```
 
@@ -47,9 +47,9 @@ This is accomplished using selector rewriting based on the current `userId` both
 
 ## Common (Client/Server) API
 
-#### `Partitioner.partitionCollection(Meteor.Collection, options)`
+#### `Partitioner.partitionCollection(Mongo.Collection, options)`
 
-Adds hooks to a particular collection so that it supports partition operations. This should be declared immediately after `new Meteor.Collection` on both the server and the client.
+Adds hooks to a particular collection so that it supports partition operations. This should be declared immediately after `new Mongo.Collection` on both the server and the client.
 
 **NOTE**: Any documents in the collection that were not created from a group will not be visible to any groups in the partition. You should think of creating a partitioned collection as an atomic operation consisting of declaring the collection and calling `partitionCollection`; we will consider rolling this into a single API call in the future.
 
@@ -159,7 +159,7 @@ This looks simple enough, until you realize that you need to keep track of the `
 With this package, you can create a partition of the `ChatMessages` collection:
 
 ```js
-ChatMessages = new Meteor.Collection("messages");
+ChatMessages = new Mongo.Collection("messages");
 Partitioner.PartitionCollection(ChatMessages, {index: {timestamp: 1}});
 ```
 

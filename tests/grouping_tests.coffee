@@ -2,8 +2,8 @@ myGroup = "group1"
 otherGroup = "group2"
 treatmentName = "baz"
 
-basicInsertCollection = new Meteor.Collection("basicInsert")
-twoGroupCollection = new Meteor.Collection("twoGroup")
+basicInsertCollection = new Mongo.Collection("basicInsert")
+twoGroupCollection = new Mongo.Collection("twoGroup")
 
 ###
   Set up server and client hooks

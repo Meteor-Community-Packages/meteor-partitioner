@@ -1,3 +1,7 @@
+## vNEXT
+
+* Update API for Meteor 0.9.1, using new version of collection hooks.
+
 ## v0.5.3
 
 * **Re-release for Meteor 0.9.**

@@ -1,12 +1,12 @@
 Package.describe({
   name: "mizzao:partitioner",
   summary: "Transparently divide a meteor app into different instances shared between groups of users.",
-  version: "0.5.3",
+  version: "0.5.4",
   git: "https://github.com/mizzao/meteor-partitioner.git"
 });
 
 Package.onUse(function (api) {
-  api.versionsFrom("0.9.1");
+  api.versionsFrom("0.9.4");
 
   // Client & Server deps
   api.use([

@@ -160,7 +160,7 @@ With this package, you can create a partition of the `ChatMessages` collection:
 
 ```js
 ChatMessages = new Mongo.Collection("messages");
-Partitioner.PartitionCollection(ChatMessages, {index: {timestamp: 1}});
+Partitioner.partitionCollection(ChatMessages, {index: {timestamp: 1}});
 ```
 
 The second argument tells the partitioner that you want an index of `timestamp` within each group. Partitioned lookups using `timestamp` will be done efficiently. Then, you can just write your publication as follows:

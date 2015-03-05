@@ -18,7 +18,7 @@ Package.onUse(function (api) {
     'mongo' // Mongo.Collection available
   ]);
 
-  api.use("matb33:collection-hooks@0.7.5");
+  api.use("matb33:collection-hooks@0.7.11");
 
   api.addFiles('common.coffee');
 

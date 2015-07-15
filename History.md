@@ -1,5 +1,9 @@
 ## vNEXT
 
+## v0.5.5
+
+* Remove package-level variables from the global namespace. (#2, #11)
+
 ## v0.5.4
 
 * Update usage of Collection API for Meteor 0.9.1+, and use updated version of collection hooks.

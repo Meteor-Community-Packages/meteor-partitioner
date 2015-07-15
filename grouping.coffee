@@ -140,11 +140,6 @@ findHook = (userId, selector, options) ->
   # Don't scope for direct operations
   return true if Partitioner._directOps.get() is true
 
-  # for find(id) we should not touch this
-  # TODO this may allow arbitrary finds across groups with the right _id
-  # We could amend this in the future to {_id: someId, _groupId: groupId}
-  return true if _.isString(selector) or (selector? and "_id" of selector)
-
   # Check for global hook
   groupId = Partitioner._currentGroup.get()
   unless groupId
@@ -195,5 +190,3 @@ TestFuncs =
   userFindHook: userFindHook
   findHook: findHook
   insertHook: insertHook
-
-

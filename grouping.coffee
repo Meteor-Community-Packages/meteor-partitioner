@@ -90,7 +90,7 @@ Partitioner.partitionCollection = (collection, options) ->
   ###
 
   # Index the collections by groupId on the server for faster lookups across groups
-  collection._ensureIndex getPartitionedIndex(options?.index)
+  collection._ensureIndex getPartitionedIndex(options?.index), options?.indexOptions
 
 # Publish admin and group for users that have it
 Meteor.publish null, ->

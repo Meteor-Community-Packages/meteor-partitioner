@@ -35,6 +35,7 @@ Partitioner.partitionCollection(Foo, options);
 `options` determines how the partitioned collection will behave. The fields that are supported are
 
 - `index`: an optional index argument that will be transformed and passed to `Collection._ensureIndex`; the default indexing behavior is to just index by group. This is useful if each partition will contain a lot of data and require efficient database lookups.
+- `indexOptions`: options passed for the second argument of `ensureIndex`.
 
 Collections that have been partitioned will behave as if there is a separate instance for each group. In particular, on the server and client, the user's current group is used to do the following:
 

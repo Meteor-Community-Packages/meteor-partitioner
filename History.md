@@ -1,5 +1,9 @@
 ## vNEXT
 
+## v0.5.6
+
+* Allow for options to be specified on partitioned indexes.
+
 ## v0.5.5
 
 * Remove package-level variables from the global namespace. (#2, #11)

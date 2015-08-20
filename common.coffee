@@ -3,5 +3,11 @@ ErrMsg =
   groupErr: "Must have group assigned to operate on partitioned collection"
 
 Helpers =
-  isDirectUserSelector: (selector) -> _.isString(selector) or
-    (selector? and ("_id" of selector or "username" of selector))
+  isDirectSelector: (selector) ->
+    _.isString(selector) or _.isString(selector?._id)
+
+  isDirectUserSelector: (selector) ->
+    _.isString(selector) or
+      _.isString(selector?._id) or
+      _.isString(selector?.username)
+

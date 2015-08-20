@@ -106,6 +106,15 @@ if Meteor.isServer
     test.isTrue ctx.args[1]?
     test.equal ctx.args[1].fields._groupId, 0
 
+  Tinytest.add "partitioner - hooks - find with no group", (test) ->
+    ctx =
+      args: []
+
+    # Should throw if user is not logged in
+    test.throws ->
+      TestFuncs.findHook.call(ctx, undefined, ctx.args[0], ctx.args[1])
+    , (e) -> e.error is 403 and e.reason is ErrMsg.userIdErr
+
   Tinytest.add "partitioner - hooks - find with string id", (test) ->
     ctx =
       args: [ "yabbadabbadoo" ]
@@ -127,12 +136,23 @@ if Meteor.isServer
 
     test.isFalse ctx.args[1]?
 
+  Tinytest.add "partitioner - hooks - find with complex _id", (test) ->
+    ctx =
+      args: [ {_id: {$ne: "yabbadabbadoo"} } ]
+
+    TestFuncs.findHook.call(ctx, userId, ctx.args[0], ctx.args[1])
+    # Should modify for complex _id
+    test.equal ctx.args[0]._id.$ne, "yabbadabbadoo"
+    test.equal ctx.args[0]._groupId, testGroupId
+
+    test.isTrue ctx.args[1]?
+    test.equal ctx.args[1].fields._groupId, 0
+
   Tinytest.add "partitioner - hooks - find with selector", (test) ->
     ctx =
       args: [ { foo: "bar" } ]
 
     TestFuncs.findHook.call(ctx, userId, ctx.args[0], ctx.args[1])
-    # Should not touch a string
     test.equal ctx.args[0].foo, "bar"
     test.equal ctx.args[0]._groupId, testGroupId
 
@@ -234,6 +254,26 @@ if Meteor.isServer
     test.equal ctx.args[0]._id, "yabbadabbadoo"
     test.isFalse ctx.args[0].group
 
+  Tinytest.add "partitioner - hooks - user find with complex _id", (test) ->
+    ctx =
+      args: [ {_id: {$ne: "yabbadabbadoo"} } ]
+
+    TestFuncs.userFindHook.call(ctx, undefined, ctx.args[0], ctx.args[1])
+    # Should have nothing changed
+    test.equal ctx.args[0]._id.$ne, "yabbadabbadoo"
+    test.isFalse ctx.args[0].group
+
+    # Ungrouped user should throw an error
+    test.throws ->
+      TestFuncs.userFindHook.call(ctx, ungroupedUserId, ctx.args[0], ctx.args[1])
+    (e) -> e.error is 403 and e.reason is ErrMsg.groupErr
+
+    TestFuncs.userFindHook.call(ctx, userId, ctx.args[0], ctx.args[1])
+    # Should be modified
+    test.equal ctx.args[0]._id.$ne, "yabbadabbadoo"
+    test.equal ctx.args[0].group, testGroupId
+    test.equal ctx.args[0].admin.$exists, false
+
   Tinytest.add "partitioner - hooks - user find with username", (test) ->
     ctx =
       args: [ {username: "yabbadabbadoo"} ]
@@ -247,6 +287,26 @@ if Meteor.isServer
     # Should not touch a single object
     test.equal ctx.args[0].username, "yabbadabbadoo"
     test.isFalse ctx.args[0].group
+
+  Tinytest.add "partitioner - hooks - user find with complex username", (test) ->
+    ctx =
+      args: [ {username: {$ne: "yabbadabbadoo"} } ]
+
+    TestFuncs.userFindHook.call(ctx, undefined, ctx.args[0], ctx.args[1])
+    # Should have nothing changed
+    test.equal ctx.args[0].username.$ne, "yabbadabbadoo"
+    test.isFalse ctx.args[0].group
+
+    # Ungrouped user should throw an error
+    test.throws ->
+      TestFuncs.userFindHook.call(ctx, ungroupedUserId, ctx.args[0], ctx.args[1])
+    (e) -> e.error is 403 and e.reason is ErrMsg.groupErr
+
+    TestFuncs.userFindHook.call(ctx, userId, ctx.args[0], ctx.args[1])
+    # Should be modified
+    test.equal ctx.args[0].username.$ne, "yabbadabbadoo"
+    test.equal ctx.args[0].group, testGroupId
+    test.equal ctx.args[0].admin.$exists, false
 
   Tinytest.add "partitioner - hooks - user find with selector", (test) ->
     ctx =

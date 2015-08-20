@@ -1,5 +1,11 @@
 ## vNEXT
 
+## v0.5.7 
+
+* Correct behavior when a complex `_id` is specified. (#4, #13). Note, 
+  however, that direct searches using `_id` still short-circuit partitioning 
+  for performance reasons (#9). This may be changed in the future.
+     
 ## v0.5.6
 
 * Allow for options to be specified on partitioned indexes.

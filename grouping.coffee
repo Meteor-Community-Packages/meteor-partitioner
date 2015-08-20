@@ -48,7 +48,7 @@ Partitioner.bindGroup = (groupId, func) ->
 Partitioner.bindUserGroup = (userId, func) ->
   groupId = Partitioner.getUserGroup(userId)
   unless groupId
-    Meteor.debug "Dropping operation because #{userId} is not in a group"
+    Meteor._debug "Dropping operation because #{userId} is not in a group"
     return
   Partitioner.bindGroup(groupId, func)
 
@@ -143,7 +143,9 @@ findHook = (userId, selector, options) ->
   # for find(id) we should not touch this
   # TODO this may allow arbitrary finds across groups with the right _id
   # We could amend this in the future to {_id: someId, _groupId: groupId}
-  return true if _.isString(selector) or (selector? and "_id" of selector)
+  # https://github.com/mizzao/meteor-partitioner/issues/9
+  # https://github.com/mizzao/meteor-partitioner/issues/10
+  return true if Helpers.isDirectSelector(selector)
 
   # Check for global hook
   groupId = Partitioner._currentGroup.get()

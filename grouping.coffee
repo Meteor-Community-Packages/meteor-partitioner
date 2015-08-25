@@ -186,11 +186,11 @@ insertHook = (userId, doc) ->
 # Sync grouping needed for hooking Meteor.users
 Grouping.find().observeChanges
   added: (id, fields) ->
-    Meteor.users.upsert(id, $set: {"group": fields.groupId} )
+    Meteor.users.update(id, $set: {"group": fields.groupId} )
   changed: (id, fields) ->
-    Meteor.users.upsert(id, $set: {"group": fields.groupId} )
+    Meteor.users.update(id, $set: {"group": fields.groupId} )
   removed: (id) ->
-    Meteor.users.upsert(id, $unset: {"group": null} )
+    Meteor.users.update(id, $unset: {"group": null} )
 
 TestFuncs =
   getPartitionedIndex: getPartitionedIndex

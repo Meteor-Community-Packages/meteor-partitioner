@@ -12,6 +12,17 @@ Grouping = new Mongo.Collection("ts.grouping")
 Partitioner._currentGroup = new Meteor.EnvironmentVariable()
 Partitioner._directOps = new Meteor.EnvironmentVariable()
 
+updateUserGroup = (userId) ->
+  return Meteor.users.update(userId, {
+    $set: {"group": Partitioner.getAllUserGroups(userId)?.fetch()}
+  })
+
+disableAllGroups = (userId) ->
+  Grouping.update({userId: userId, active:true}, {
+    $set: {active: false}
+  })
+
+
 ###
    Public API
 ###
@@ -19,19 +30,40 @@ Partitioner._directOps = new Meteor.EnvironmentVariable()
 Partitioner.setUserGroup = (userId, groupId) ->
   check(userId, String)
   check(groupId, String)
-  if Grouping.findOne(userId)
-    throw new Meteor.Error(403, "User is already in a group")
+  group = Grouping.findOne userId: userId, groupId: groupId
 
-  Grouping.upsert userId,
-    $set: {groupId: groupId}
+  if !group
+    disableAllGroups(userId)
+    Grouping.insert
+      userId: userId
+      groupId: groupId
+      active: true
+    return updateUserGroup(userId)
+
+  if group.active is true
+    throw new Meteor.Error(403, "User is already in group #{groupId}")
+
+  disableAllGroups(userId)
+  Grouping.update group._id,
+    $set: {active: true}
+  updateUserGroup(userId)
+
+Partitioner.getActiveGroup = (userId) ->
+  check(userId, String)
+  Grouping.findOne({userId: userId, active: true})
 
 Partitioner.getUserGroup = (userId) ->
-  check(userId, String)
-  Grouping.findOne(userId)?.groupId
+  Partitioner.getActiveGroup(userId)?.groupId
+
+Partitioner.getAllUserGroups = (userId) ->
+  Grouping.find({userId: userId})
 
 Partitioner.clearUserGroup = (userId) ->
   check(userId, String)
-  Grouping.remove(userId)
+  Grouping.update({userId: userId, active:true}, {
+    $set: {active: false}
+  })
+  updateUserGroup(userId)
 
 Partitioner.group = ->
   # If group is overridden, return that instead
@@ -40,11 +72,10 @@ Partitioner.group = ->
   try # We may be outside of a method
     userId = Meteor.userId()
   return unless userId
-  return Partitioner.getUserGroup(userId)
+  Partitioner.getUserGroup(userId)
 
 Partitioner.bindGroup = (groupId, func) ->
-  Partitioner._currentGroup.withValue(groupId, func);
-
+  Partitioner._currentGroup.withValue(groupId, func)
 Partitioner.bindUserGroup = (userId, func) ->
   groupId = Partitioner.getUserGroup(userId)
   unless groupId
@@ -53,7 +84,7 @@ Partitioner.bindUserGroup = (userId, func) ->
   Partitioner.bindGroup(groupId, func)
 
 Partitioner.directOperation = (func) ->
-  Partitioner._directOps.withValue(true, func);
+  Partitioner._directOps.withValue(true, func)
 
 # This can be replaced - currently not documented
 Partitioner._isAdmin = (userId) -> Meteor.users.findOne(userId).admin is true
@@ -113,7 +144,7 @@ userFindHook = (userId, selector, options) ->
 
   unless groupId
     user = Meteor.users.findOne(userId)
-    groupId = Grouping.findOne(userId)?.groupId
+    groupId = Partitioner.getUserGroup(userId)
     # If user is admin and not in a group, proceed as normal (select all users)
     return true if user.admin and !groupId
     # Normal users need to be in a group
@@ -121,7 +152,7 @@ userFindHook = (userId, selector, options) ->
 
   # Since user is in a group, scope the find to the group
   filter =
-    "group" : groupId
+    "group" : {$elemMatch: {groupId: groupId}}
     "admin": {$exists: false}
 
   unless @args[0]
@@ -151,7 +182,7 @@ findHook = (userId, selector, options) ->
   groupId = Partitioner._currentGroup.get()
   unless groupId
     throw new Meteor.Error(403, ErrMsg.userIdErr) unless userId
-    groupId = Grouping.findOne(userId)?.groupId
+    groupId = Partitioner.getUserGroup(userId)
     throw new Meteor.Error(403, ErrMsg.groupErr) unless groupId
 
   # if object (or empty) selector, just filter by group
@@ -177,24 +208,11 @@ insertHook = (userId, doc) ->
   groupId = Partitioner._currentGroup.get()
   unless groupId
     throw new Meteor.Error(403, ErrMsg.userIdErr) unless userId
-    groupId = Grouping.findOne(userId)?.groupId
+    groupId = Partitioner.getUserGroup(userId)
     throw new Meteor.Error(403, ErrMsg.groupErr) unless groupId
 
   doc._groupId = groupId
   return true
-
-# Sync grouping needed for hooking Meteor.users
-Grouping.find().observeChanges
-  added: (id, fields) ->
-    unless Meteor.users.update(id, $set: {"group": fields.groupId} )
-      Meteor._debug "Tried to set group for nonexistent user #{id}"
-    return
-  changed: (id, fields) ->
-    unless Meteor.users.update(id, $set: {"group": fields.groupId} )
-      Meteor._debug "Tried to change group for nonexistent user #{id}"
-  removed: (id) ->
-    unless Meteor.users.update(id, $unset: {"group": null} )
-      Meteor._debug "Tried to unset group for nonexistent user #{id}"
 
 TestFuncs =
   getPartitionedIndex: getPartitionedIndex

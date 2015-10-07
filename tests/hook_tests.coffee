@@ -1,5 +1,6 @@
 testUsername = "hooks_foo"
 testGroupId = "hooks_bar"
+testGroupIdQuery = {$elemMatch: {groupId: testGroupId}}
 
 if Meteor.isClient
   # XXX All async here to ensure ordering
@@ -215,7 +216,7 @@ if Meteor.isServer
 
     TestFuncs.userFindHook.call(ctx, userId, ctx.args[0], ctx.args[1])
     # Should replace undefined with { _groupId: ... }
-    test.equal ctx.args[0].group, testGroupId
+    test.equal ctx.args[0].group, testGroupIdQuery
     test.equal ctx.args[0].admin.$exists, false
 
   Tinytest.add "partitioner - hooks - user find with environment group but no userId", (test) ->
@@ -225,7 +226,7 @@ if Meteor.isServer
     Partitioner.bindGroup testGroupId, ->
       TestFuncs.userFindHook.call(ctx, undefined, ctx.args[0], ctx.args[1])
       # Should have set the extra arguments
-      test.equal ctx.args[0].group, testGroupId
+      test.equal ctx.args[0].group, testGroupIdQuery
       test.equal ctx.args[0].admin.$exists, false
 
   Tinytest.add "partitioner - hooks - user find with string id", (test) ->
@@ -285,7 +286,7 @@ if Meteor.isServer
     TestFuncs.userFindHook.call(ctx, userId, ctx.args[0], ctx.args[1])
     # Should be modified
     test.equal ctx.args[0]._id.$ne, "yabbadabbadoo"
-    test.equal ctx.args[0].group, testGroupId
+    test.equal ctx.args[0].group, testGroupIdQuery
     test.equal ctx.args[0].admin.$exists, false
 
   Tinytest.add "partitioner - hooks - user find with username", (test) ->
@@ -319,7 +320,7 @@ if Meteor.isServer
     TestFuncs.userFindHook.call(ctx, userId, ctx.args[0], ctx.args[1])
     # Should be modified
     test.equal ctx.args[0].username.$ne, "yabbadabbadoo"
-    test.equal ctx.args[0].group, testGroupId
+    test.equal ctx.args[0].group, testGroupIdQuery
     test.equal ctx.args[0].admin.$exists, false
 
   Tinytest.add "partitioner - hooks - user find with selector", (test) ->
@@ -339,5 +340,5 @@ if Meteor.isServer
     TestFuncs.userFindHook.call(ctx, userId, ctx.args[0], ctx.args[1])
     # Should modify the selector
     test.equal ctx.args[0].foo, "bar"
-    test.equal ctx.args[0].group, testGroupId
+    test.equal ctx.args[0].group, testGroupIdQuery
     test.equal ctx.args[0].admin.$exists, false

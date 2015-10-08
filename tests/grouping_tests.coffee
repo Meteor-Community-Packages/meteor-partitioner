@@ -67,7 +67,6 @@ if Meteor.isServer
     joinGroup: (myGroup) ->
       userId = Meteor.userId()
       throw new Error(403, "Not logged in") unless userId
-      Partitioner.clearUserGroup userId
       Partitioner.setUserGroup(userId, myGroup)
     serverInsert: (name, doc) ->
       return groupingCollections[name].insert(doc)
@@ -118,19 +117,21 @@ if Meteor.isClient
 
   # Ensure that the group id has been recorded before subscribing
   Tinytest.addAsync "partitioner - collections - received group id", (test, next) ->
-    Tracker.autorun (c) ->
       groupId = Partitioner.group()
       if groupId
-        c.stop()
         test.equal groupId, myGroup
         next()
 
   Tinytest.addAsync "partitioner - collections - test subscriptions ready", (test, next) ->
+<<<<<<< 88610ab4efb2deb775876560a455da4db3def6e2
     handle = Meteor.subscribe("groupingTests")
     Tracker.autorun (c) ->
       if handle.ready()
         c.stop()
         next()
+=======
+    handle = Meteor.subscribe("groupingTests", () -> next())
+>>>>>>> Fix tests.
 
   Tinytest.addAsync "partitioner - collections - local empty find", (test, next) ->
     test.equal basicInsertCollection.find().count(), 0

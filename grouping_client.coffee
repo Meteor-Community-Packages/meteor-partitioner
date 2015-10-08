@@ -8,7 +8,7 @@ Partitioner.group = ->
   userId = Meteor.userId()
   return unless userId
   user = Meteor.users.findOne(userId)
-  _.findWhere(user.group, {active: true})?.groupId
+  _.findWhere(user && user.group, {active: true})?.groupId
 
 userFindHook = (userId, selector, options) ->
   # Do the usual find for no user or single selector

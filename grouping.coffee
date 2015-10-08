@@ -27,7 +27,7 @@ disableAllGroups = (userId) ->
    Public API
 ###
 
-Partitioner.setUserGroup = (userId, groupId) ->
+Partitioner.setUserGroup = (userId, groupId, active=true) ->
   check(userId, String)
   check(groupId, String)
   group = Grouping.findOne userId: userId, groupId: groupId
@@ -37,7 +37,7 @@ Partitioner.setUserGroup = (userId, groupId) ->
     Grouping.insert
       userId: userId
       groupId: groupId
-      active: true
+      active: active
     return updateUserGroup(userId)
 
   if group.active is true

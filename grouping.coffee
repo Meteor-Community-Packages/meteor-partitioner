@@ -33,7 +33,7 @@ Partitioner.setUserGroup = (userId, groupId, active=true) ->
   group = Grouping.findOne userId: userId, groupId: groupId
 
   if !group
-    disableAllGroups(userId)
+    disableAllGroups(userId) if active
     Grouping.insert
       userId: userId
       groupId: groupId

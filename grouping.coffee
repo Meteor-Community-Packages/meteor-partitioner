@@ -165,6 +165,7 @@ userFindHook = (userId, selector, options) ->
 # Attach the find hooks to Meteor.users
 Meteor.users.before.find userFindHook
 Meteor.users.before.findOne userFindHook
+Meteor.users._ensureIndex 'group.groupId': 1
 
 # No allow/deny for find so we make our own checks
 findHook = (userId, selector, options) ->

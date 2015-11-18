@@ -1,5 +1,11 @@
 ## vNEXT
 
+## v0.5.8 
+
+* Use a workaround to short-circuit `_id: {$in: [...]}` style queries, which 
+would cause an error for some user login processes because of the way 
+collection hooks retrieved documents. (See HarvardEconCS/turkserver-meteor#44). 
+
 ## v0.5.7 
 
 * Correct behavior when a complex `_id` is specified. (#4, #13). Note, 

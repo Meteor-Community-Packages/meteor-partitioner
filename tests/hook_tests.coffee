@@ -254,6 +254,20 @@ if Meteor.isServer
     test.equal ctx.args[0]._id, "yabbadabbadoo"
     test.isFalse ctx.args[0].group
 
+  Tinytest.add "partitioner - hooks - user find with _id: $in", (test) ->
+    ctx =
+      args: [ {_id: $in: [ "yabbadabbadoo"] } ]
+
+    TestFuncs.userFindHook.call(ctx, undefined, ctx.args[0], ctx.args[1])
+    # Should have nothing changed
+    test.equal ctx.args[0]._id.$in[0], "yabbadabbadoo"
+    test.isFalse ctx.args[0].group
+
+    TestFuncs.userFindHook.call(ctx, userId, ctx.args[0], ctx.args[1])
+    # Should not touch a single object
+    test.equal ctx.args[0]._id.$in[0], "yabbadabbadoo"
+    test.isFalse ctx.args[0].group
+
   Tinytest.add "partitioner - hooks - user find with complex _id", (test) ->
     ctx =
       args: [ {_id: {$ne: "yabbadabbadoo"} } ]

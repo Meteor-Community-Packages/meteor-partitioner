@@ -1,12 +1,12 @@
 Package.describe({
   name: "mizzao:partitioner",
   summary: "Transparently divide a meteor app into different instances shared between groups of users.",
-  version: "0.5.7",
+  version: "0.5.8",
   git: "https://github.com/mizzao/meteor-partitioner.git"
 });
 
 Package.onUse(function (api) {
-  api.versionsFrom("1.1.0.2");
+  api.versionsFrom("1.2.0.1");
 
   // Client & Server deps
   api.use([
@@ -18,7 +18,7 @@ Package.onUse(function (api) {
     'mongo' // Mongo.Collection available
   ]);
 
-  api.use("matb33:collection-hooks@0.7.13");
+  api.use("matb33:collection-hooks@0.7.15");
 
   api.addFiles('common.coffee');
 
@@ -43,7 +43,8 @@ Package.onTest(function (api) {
     'coffeescript',
     'underscore',
     'ddp', // Meteor.publish available
-    'mongo' // Mongo.Collection available
+    'mongo', // Mongo.Collection available
+    'tracker' // Deps/Tracker available
   ]);
 
   api.use([

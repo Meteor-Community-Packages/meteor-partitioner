@@ -118,7 +118,7 @@ if Meteor.isClient
 
   # Ensure that the group id has been recorded before subscribing
   Tinytest.addAsync "partitioner - collections - received group id", (test, next) ->
-    Deps.autorun (c) ->
+    Tracker.autorun (c) ->
       groupId = Partitioner.group()
       if groupId
         c.stop()
@@ -127,7 +127,7 @@ if Meteor.isClient
 
   Tinytest.addAsync "partitioner - collections - test subscriptions ready", (test, next) ->
     handle = Meteor.subscribe("groupingTests")
-    Deps.autorun (c) ->
+    Tracker.autorun (c) ->
       if handle.ready()
         c.stop()
         next()

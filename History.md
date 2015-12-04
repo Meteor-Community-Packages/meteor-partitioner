@@ -1,5 +1,9 @@
 ## vNEXT
 
+## v0.5.9
+
+* Fix a bug that would create blank records for users who are deleted. (#14) 
+
 ## v0.5.8 
 
 * Use a workaround to short-circuit `_id: {$in: [...]}` style queries, which 

@@ -186,16 +186,18 @@ insertHook = (userId, doc) ->
 # Sync grouping needed for hooking Meteor.users
 Grouping.find().observeChanges
   added: (id, fields) ->
-    Meteor.users.update(id, $set: {"group": fields.groupId} )
+    unless Meteor.users.update(id, $set: {"group": fields.groupId} )
+      Meteor._debug "Tried to set group for nonexistent user #{id}"
+    return
   changed: (id, fields) ->
-    Meteor.users.update(id, $set: {"group": fields.groupId} )
+    unless Meteor.users.update(id, $set: {"group": fields.groupId} )
+      Meteor._debug "Tried to change group for nonexistent user #{id}"
   removed: (id) ->
-    Meteor.users.update(id, $unset: {"group": null} )
+    unless Meteor.users.update(id, $unset: {"group": null} )
+      Meteor._debug "Tried to unset group for nonexistent user #{id}"
 
 TestFuncs =
   getPartitionedIndex: getPartitionedIndex
   userFindHook: userFindHook
   findHook: findHook
   insertHook: insertHook
-
-

@@ -65,6 +65,19 @@ Partitioner.clearUserGroup = (userId) ->
   })
   updateUserGroup(userId)
 
+Partitioner.removeFromGroup = (userId, groupId, changeToOtherGroup = true) ->
+  check(userId, String)
+  check(groupId, String)
+  group = Grouping.findOne({userId: userId, groupId: groupId})
+  return if !group
+
+  Grouping.remove({userId: userId, groupId: groupId})
+  if (group.active and changeToOtherGroup)
+    allGroups = Partitioner.getAllUserGroups(userId)
+    if (allGroups.count() > 0)
+      return Partitioner.setUserGroup(userId, allGroups.fetch()[0].groupId)
+  updateUserGroup(userId)
+
 Partitioner.group = ->
   # If group is overridden, return that instead
   if (groupId = Partitioner._currentGroup.get())?

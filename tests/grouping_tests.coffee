@@ -123,15 +123,7 @@ if Meteor.isClient
         next()
 
   Tinytest.addAsync "partitioner - collections - test subscriptions ready", (test, next) ->
-<<<<<<< 88610ab4efb2deb775876560a455da4db3def6e2
-    handle = Meteor.subscribe("groupingTests")
-    Tracker.autorun (c) ->
-      if handle.ready()
-        c.stop()
-        next()
-=======
     handle = Meteor.subscribe("groupingTests", () -> next())
->>>>>>> Fix tests.
 
   Tinytest.addAsync "partitioner - collections - local empty find", (test, next) ->
     test.equal basicInsertCollection.find().count(), 0

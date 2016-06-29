@@ -191,6 +191,17 @@ if Meteor.isServer
     test.equal ctx.args[1].fields.foo, 0
     test.equal ctx.args[1].fields._groupId, 0
 
+  Tinytest.add "partitioner - hooks - find with custom groupIdProperty", (test) ->
+    Partitioner.setGroupIdPropertyName "_custom"
+    ctx =
+      args: [{ }]
+
+    TestFuncs.findHook.call(ctx, userId, ctx.args[0])
+
+    test.equal ctx.args[0]._custom, testGroupId
+
+    Partitioner.setGroupIdPropertyName "_groupId"
+
   Tinytest.add "partitioner - hooks - insert doc", (test) ->
     ctx =
       args: [ { foo: "bar" } ]

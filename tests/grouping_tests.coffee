@@ -53,10 +53,12 @@ if Meteor.isServer
     Partitioner.directOperation ->
       twoGroupCollection.insert
         _groupId: myGroup
+        _otherGroupId: myGroup
         a: 1
 
       twoGroupCollection.insert
         _groupId: otherGroup
+        _otherGroupId: otherGroup
         a: 1
 
     Meteor._debug "collections configured"
@@ -101,6 +103,38 @@ if Meteor.isServer
     Partitioner.bindGroup "overridden", ->
       basicInsertCollection.insert { foo: "bar"}
       test.ok()
+
+  Tinytest.add "partitioner - collections - insert with custom groupIdProperty", (test) ->
+    Partitioner.setGroupIdPropertyName '_custom'
+    Partitioner.bindGroup "overridden", ->
+      basicInsertCollection.insert { foo: "bar"}
+      inserted = basicInsertCollection.findOne({foo:"bar"})
+      test.isFalse inserted._groupId?
+      test.isFalse inserted._custom?
+      test.ok()
+    Partitioner.setGroupIdPropertyName '_groupId'
+
+  Tinytest.add "partitioner - collections - return groupIdProperty", (test) ->
+    Partitioner.setReturnGroupIdAsField true
+    Partitioner.bindGroup "overridden", ->
+      basicInsertCollection.insert { foo: "bar"}
+      inserted = basicInsertCollection.findOne({foo:"bar"})
+      test.isTrue inserted._groupId?
+      test.equal inserted._groupId, "overridden"
+      test.ok()
+    Partitioner.setReturnGroupIdAsField false
+
+  Tinytest.add "partitioner - collections - return groupIdProperty with custom groupIdProperty", (test) ->
+    Partitioner.setGroupIdPropertyName '_custom'
+    Partitioner.setReturnGroupIdAsField true
+    Partitioner.bindGroup "overridden", ->
+      basicInsertCollection.insert { foo: "bar"}
+      inserted = basicInsertCollection.findOne({foo:"bar"})
+      test.isTrue inserted._custom?
+      test.equal inserted._custom, "overridden"
+      test.ok()
+    Partitioner.setGroupIdPropertyName '_groupId'
+    Partitioner.setReturnGroupIdAsField false
 
 if Meteor.isClient
   ###
@@ -151,6 +185,18 @@ if Meteor.isClient
   , (test, expect) ->
       test.equal basicInsertCollection.find({a: 1}).count(), 1
       test.isFalse basicInsertCollection.findOne(a: 1)._groupId?
+  ]
+
+  testAsyncMulti "partitioner - collections - basic insert with custom groupIdProperty", [
+    (test, expect) ->
+      Partitioner.setGroupIdPropertyName '_custom'
+      id = basicInsertCollection.insert { a: 1 }, expect (err, res) ->
+        test.isFalse err, JSON.stringify(err)
+        test.equal res, id
+  , (test, expect) ->
+      test.equal basicInsertCollection.find({a: 1}).count(), 1
+      test.isFalse basicInsertCollection.findOne(a: 1)._groupId?
+      Partitioner.setGroupIdPropertyName '_groupId'
   ]
 
   testAsyncMulti "partitioner - collections - find from two groups", [ (test, expect) ->

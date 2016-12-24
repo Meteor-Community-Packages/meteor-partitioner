@@ -5,7 +5,10 @@
   Grouping contains _id: userId and groupId: groupId
 ###
 
-Partitioner = {}
+Partitioner =
+  _documentGroupIdProperty: "_groupId"
+  _returnGroupIdAsField: false
+
 Grouping = new Mongo.Collection("ts.grouping")
 
 # Meteor environment variables for scoping group operations
@@ -15,6 +18,13 @@ Partitioner._directOps = new Meteor.EnvironmentVariable()
 ###
    Public API
 ###
+
+# Allow to change the document property for groupId
+Partitioner.setGroupIdPropertyName = (name) ->
+  Partitioner._groupIdProperty = name
+
+Partitioner.setReturnGroupIdAsField = (b) ->
+  Partitioner._returnGroupIdAsField = b
 
 Partitioner.setUserGroup = (userId, groupId) ->
   check(userId, String)
@@ -59,7 +69,8 @@ Partitioner.directOperation = (func) ->
 Partitioner._isAdmin = (userId) -> Meteor.users.findOne(userId).admin is true
 
 getPartitionedIndex = (index) ->
-  defaultIndex = { _groupId : 1 }
+  defaultIndex = {}
+  defaultIndex[Partitioner._documentGroupIdProperty] = 1
   return defaultIndex unless index
   return _.extend( defaultIndex, index )
 
@@ -156,22 +167,25 @@ findHook = (userId, selector, options) ->
 
   # if object (or empty) selector, just filter by group
   unless selector?
-    @args[0] = { _groupId : groupId }
+    @args[0] = {}
+    @args[0][Partitioner._documentGroupIdProperty] = groupId;
   else
-    selector._groupId = groupId
+    selector[Partitioner._documentGroupIdProperty] = groupId
 
   # Adjust options to not return _groupId
-  unless options?
-    @args[1] = { fields: {_groupId: 0} }
-  else
-    # If options already exist, add {_groupId: 0} unless fields has {foo: 1} somewhere
-    options.fields ?= {}
-    options.fields._groupId = 0 unless _.any(options.fields, (v) -> v is 1)
+  if Partitioner._returnGroupIdAsField == false
+    unless options?
+      @args[1] = {fields: {}}
+      @args[1]['fields'][Partitioner._documentGroupIdProperty] = 0;
+    else
+      # If options already exist, add {_groupId: 0} unless fields has {foo: 1} somewhere
+      options.fields ?= {}
+      options.fields[Partitioner._documentGroupIdProperty] = 0 unless _.any(options.fields, (v) -> v is 1)
 
   return true
 
 insertHook = (userId, doc) ->
-  # Don't add group for direct inserts
+# Don't add group for direct inserts
   return true if Partitioner._directOps.get() is true
 
   groupId = Partitioner._currentGroup.get()
@@ -180,20 +194,20 @@ insertHook = (userId, doc) ->
     groupId = Grouping.findOne(userId)?.groupId
     throw new Meteor.Error(403, ErrMsg.groupErr) unless groupId
 
-  doc._groupId = groupId
+  doc[Partitioner._documentGroupIdProperty] = groupId
   return true
 
 # Sync grouping needed for hooking Meteor.users
 Grouping.find().observeChanges
   added: (id, fields) ->
-    unless Meteor.users.update(id, $set: {"group": fields.groupId} )
+    unless Meteor.users.update(id, $set: {"group": fields.groupId})
       Meteor._debug "Tried to set group for nonexistent user #{id}"
     return
   changed: (id, fields) ->
-    unless Meteor.users.update(id, $set: {"group": fields.groupId} )
+    unless Meteor.users.update(id, $set: {"group": fields.groupId})
       Meteor._debug "Tried to change group for nonexistent user #{id}"
   removed: (id) ->
-    unless Meteor.users.update(id, $unset: {"group": null} )
+    unless Meteor.users.update(id, $unset: {"group": null})
       Meteor._debug "Tried to unset group for nonexistent user #{id}"
 
 TestFuncs =

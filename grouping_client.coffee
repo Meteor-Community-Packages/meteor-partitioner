@@ -1,4 +1,5 @@
-Partitioner = {}
+Partitioner =
+  _documentGroupIdProperty: "_groupId"
 
 ###
   Client selector modifiers
@@ -10,7 +11,7 @@ Partitioner.group = ->
   return Meteor.users.findOne(userId, fields: {group: 1})?.group
 
 userFindHook = (userId, selector, options) ->
-  # Do the usual find for no user or single selector
+# Do the usual find for no user or single selector
   return true if !userId or Helpers.isDirectUserSelector(selector)
 
   # No hooking needed for regular users, taken care of on server
@@ -31,14 +32,17 @@ insertHook = (userId, doc) ->
   throw new Meteor.Error(403, ErrMsg.userIdErr) unless userId
   groupId = Partitioner.group()
   throw new Meteor.Error(403, ErrMsg.groupErr) unless groupId
-  doc._groupId = groupId
+  doc[Partitioner._documentGroupIdProperty] = groupId
   return true
 
 # Add in groupId for client so as not to cause unexpected sync changes
 Partitioner.partitionCollection = (collection) ->
-  # No find hooks needed if server side filtering works properly
-
+# No find hooks needed if server side filtering works properly
   collection.before.insert insertHook
+
+# Allow to change the document property for groupId
+Partitioner.setGroupIdPropertyName = (name) ->
+  Partitioner._groupIdProperty = name
 
 TestFuncs =
   userFindHook: userFindHook

@@ -56,7 +56,7 @@ Partitioner.directOperation = (func) ->
   Partitioner._directOps.withValue(true, func);
 
 # This can be replaced - currently not documented
-Partitioner._isAdmin = (userId) -> Meteor.users.findOne(userId).admin is true
+Partitioner._isAdmin = (userId) -> Meteor.users.findOne(userId, {fields: groupId: 1, admin: 1}).admin is true
 
 getPartitionedIndex = (index) ->
   defaultIndex = { _groupId : 1 }
@@ -112,7 +112,7 @@ userFindHook = (userId, selector, options) ->
   return true if (!userId and !groupId)
 
   unless groupId
-    user = Meteor.users.findOne(userId)
+    user = Meteor.users.findOne(userId, {fields: groupId: 1, admin: 1})
     groupId = Grouping.findOne(userId)?.groupId
     # If user is admin and not in a group, proceed as normal (select all users)
     return true if user.admin and !groupId

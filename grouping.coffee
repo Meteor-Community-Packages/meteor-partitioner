@@ -146,27 +146,27 @@ findHook = (userId, selector, options) ->
   # https://github.com/mizzao/meteor-partitioner/issues/9
   # https://github.com/mizzao/meteor-partitioner/issues/10
   return true if Helpers.isDirectSelector(selector)
-
+  if userId
   # Check for global hook
-  groupId = Partitioner._currentGroup.get()
-  unless groupId
-    throw new Meteor.Error(403, ErrMsg.userIdErr) unless userId
-    groupId = Grouping.findOne(userId)?.groupId
-    throw new Meteor.Error(403, ErrMsg.groupErr) unless groupId
+    groupId = Partitioner._currentGroup.get()
+    unless groupId
+      throw new Meteor.Error(403, ErrMsg.userIdErr) unless userId
+      groupId = Grouping.findOne(userId)?.groupId
+      throw new Meteor.Error(403, ErrMsg.groupErr) unless groupId
 
-  # if object (or empty) selector, just filter by group
-  unless selector?
-    @args[0] = { _groupId : groupId }
-  else
-    selector._groupId = groupId
+    # if object (or empty) selector, just filter by group
+    unless selector?
+      @args[0] = { _groupId : groupId }
+    else
+      selector._groupId = groupId
 
-  # Adjust options to not return _groupId
-  unless options?
-    @args[1] = { fields: {_groupId: 0} }
-  else
-    # If options already exist, add {_groupId: 0} unless fields has {foo: 1} somewhere
-    options.fields ?= {}
-    options.fields._groupId = 0 unless _.any(options.fields, (v) -> v is 1)
+    # Adjust options to not return _groupId
+    unless options?
+      @args[1] = { fields: {_groupId: 0} }
+    else
+      # If options already exist, add {_groupId: 0} unless fields has {foo: 1} somewhere
+      options.fields ?= {}
+      options.fields._groupId = 0 unless _.any(options.fields, (v) -> v is 1)
 
   return true
 

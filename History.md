@@ -1,5 +1,10 @@
 ## vNEXT
 
+## v.5.10
+
+* Limit fields when searching the users collection
+* Check that user has been logged in before taking action for hooking
+
 ## v0.5.9
 
 * Fix a bug that would create blank records for users who are deleted. (#14) 

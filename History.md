@@ -1,9 +1,15 @@
 ## vNEXT
 
-## v.5.10
+* BREAKING: Minimum Meteor version is now v1.12.1
+* Compatibility with Meteor v2.3
+* Compatible with CoffeeScript 2
+
+## v.5.10 - unreleased
 
 * Limit fields when searching the users collection
 * Check that user has been logged in before taking action for hooking
+* Update `matb33:collection-hooks` to v0.8.4
+* Minimum Meteor version required is now v1.2.1
 
 ## v0.5.9
 
